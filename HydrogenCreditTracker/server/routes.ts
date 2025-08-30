@@ -14,6 +14,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Wallet address is required" });
       }
 
+      // Check if user already exists with this wallet address
       let user = await storage.getUserByWallet(walletAddress);
       
       if (!user) {
@@ -27,12 +28,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Respond back with user info
+      // Also tell if user is new (based on verification status)
       res.json({ user, isNewUser: !user.verificationStatus });
     } catch (error) {
       res.status(500).json({ error: "Failed to connect wallet" });
     }
   });
-
+  
+  // This endpoint is used to verify the user's decentralized identity (DID)
   app.post("/api/auth/verify-did", async (req, res) => {
     try {
       const { userId, did, name, organization, location, role } = req.body;
