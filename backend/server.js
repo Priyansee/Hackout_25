@@ -36,9 +36,7 @@ app.post("/issue", async (req, res) => {
     const { to, amount } = req.body;
     const accounts = await web3.eth.getAccounts();
 
-    for (let i = 0; i < amount; i++) {
-      await contract.methods.issueCredits(to, amount).send({ from: accounts[0] });
-    }
+    await contract.methods.issueCredits(to, amount).send({ from: accounts[0] });
 
     res.json({ success: true, to, amount });
   } catch (err) {
