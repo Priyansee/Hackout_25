@@ -1,0 +1,80 @@
+# Blockchain-Based Green Hydrogen Credit Tracking System
+
+## Project Overview
+This project aims to create a **transparent, traceable, and fraud-proof system** for tracking green hydrogen credits using blockchain technology. It enables producers, regulators, and investors to verify hydrogen production, trade credits securely, and access verifiable compliance data in real-time.
+
+---
+
+## Core Functionalities
+
+### 1. Hydrogen Digital Passport (Traceability Layer)
+- Each hydrogen credit is represented as a **smart-contract-backed digital token**.
+- Passport provides **origin, certification, and lifecycle information**.
+- Users can explore and verify tokens via a **dashboard similar to Etherscan**.
+
+### 2. Fraud-Proof Credit Exchange (Marketplace Layer)
+- Hydrogen credits are tokenized into **NFTs (ERC-721)** and can be **fractionalized (ERC-1155)**.
+- Only **verified users** (via **DID-based KYC**) can trade, preventing double counting or ghost entities.
+
+### 3. Regulator & Investor API + Dashboard (Transparency Layer)
+- Provides **REST APIs** for regulators and investors to access verifiable compliance data.
+- Dashboard displays:
+  - **Live map of hydrogen projects**
+  - **Credit flows**
+  - **Encrypted certification documents**
+
+---
+
+## Technical Stack
+
+- **Blockchain / DLT:** Ethereum or Polygon (optionally Hyperledger)
+- **Smart Contracts:** Solidity (ERC-721 & ERC-1155, role-based access for issuance, transfer, retirement)
+- **MERN Stack:**
+  - **MongoDB** for metadata storage
+  - **Express + Node.js** for REST APIs
+  - **React** for dashboards and marketplace UI
+- **Digital Identity:** DID-based KYC for producers and buyers
+- **Secure Cloud Storage:** IPFS + AWS S3 with AES encryption
+- **Data Security:** End-to-end encryption for sensitive data
+
+---
+
+## Project Deliverables
+
+### 1. Solidity Smart Contracts
+- `HydrogenCreditNFT.sol` — ERC-721/1155 with fractionalization
+- `Marketplace.sol` — Marketplace for verified trading and credit retirement
+- `IdentityRegistry.sol` — DID-based identity verification
+
+### 2. MERN Backend
+- REST APIs for issuing, trading, verifying, and retiring credits
+- JWT & DID-based authentication
+- Regulator and investor endpoints
+
+### 3. React Frontend
+- **Explorer Dashboard:** Search and verify hydrogen credits
+- **Marketplace UI:** Trade credits securely
+- **Admin/Regulator Dashboard:** Project map, credit flows, compliance data
+
+### 4. Integration
+- Smart contracts connected via **Web3.js / Ethers.js**
+- Metadata and certification documents stored securely in **IPFS/S3**
+- Dockerfile for deployment and environment setup
+
+### 5. Sample Data & Demo
+- Preloaded example producers, credits, and transactions for demonstration
+
+---
+
+## Getting Started
+1. Clone the repository
+2. Install dependencies for both **frontend** and **backend**
+3. Deploy smart contracts to Ethereum/Polygon testnet
+4. Run the backend server (`Node.js / Express`)
+5. Launch the React frontend dashboard
+6. Test issuing, trading, and verifying hydrogen credits
+
+---
+
+## License
+MIT License
