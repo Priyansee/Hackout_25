@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,8 +21,11 @@ import {
 } from "lucide-react";
 import type { ComplianceStats, Transaction, Project } from "@/types";
 
-export default function Regulator() {
   const [mapView, setMapView] = useState<"map" | "list">("map");
+  const [alertList, setAlertList] = useState(alerts);
+  const [currentPage, setCurrentPage] = useState(1);
+  const projectsPerPage = 5;
+  const navigate = useNavigate();
 
   const { data: complianceStats, isLoading: isStatsLoading } = useQuery<ComplianceStats>({
     queryKey: ["/api/regulator/compliance"],
@@ -48,29 +52,7 @@ export default function Regulator() {
     }
   };
 
-  const alerts = [
-    {
-      type: "error",
-      icon: AlertTriangle,
-      title: "Document Expired",
-      description: "H2-WIND-089 certification needs renewal",
-      color: "bg-destructive/10 border-destructive/20 text-destructive",
-    },
-    {
-      type: "warning", 
-      icon: Clock,
-      title: "Audit Due",
-      description: "SolarH2 facility requires inspection",
-      color: "bg-yellow-500/10 border-yellow-500/20 text-yellow-500",
-    },
-    {
-      type: "success",
-      icon: CheckCircle,
-      title: "Verification Complete", 
-      description: "WindPower H2 passed compliance check",
-      color: "bg-secondary/10 border-secondary/20 text-secondary",
-    },
-  ];
+  // alerts moved to state as alertList
 
   const documents = [
     {
@@ -168,7 +150,6 @@ export default function Regulator() {
                         </div>
                       </div>
                     </div>
-                    
                     {/* Map markers */}
                     <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-secondary rounded-full animate-pulse" />
                     <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-primary rounded-full animate-pulse" />
@@ -181,19 +162,63 @@ export default function Regulator() {
                         <Skeleton key={i} className="h-16 w-full" />
                       ))
                     ) : (
-                      projects.slice(0, 6).map((project) => (
-                        <div key={project.id} className="flex justify-between items-center p-3 border border-border rounded-lg">
-                          <div>
-                            <div className="font-medium">{project.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {project.location.name} • {project.capacity} • {project.technology}
+                      <>
+                        {projects
+                          .slice((currentPage - 1) * projectsPerPage, currentPage * projectsPerPage)
+                          .map((project) => (
+                            <div key={project.id} className="flex justify-between items-center p-3 border border-border rounded-lg">
+                              <div>
+                                <div className="font-medium">{project.name}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {project.location.name} • {project.capacity} • {project.technology}
+                                </div>
+                              </div>
+                              <div className="flex gap-2 items-center">
+                                <Badge variant={project.status === "active" ? "default" : "secondary"}>
+                                  {project.status}
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  data-testid="button-view-project"
+                                  onClick={() => navigate(`/projects/${project.id}`)}
+                                >
+                                  View Details
+                                </Button>
+                              </div>
                             </div>
+                          ))}
+                        <div className="flex justify-between items-center mt-4">
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={currentPage === 1}
+                              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                              data-testid="button-prev-projects"
+                            >
+                              Previous
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={currentPage * projectsPerPage >= projects.length}
+                              onClick={() => setCurrentPage((p) => p + 1)}
+                              data-testid="button-next-projects"
+                            >
+                              Next
+                            </Button>
                           </div>
-                          <Badge variant={project.status === "active" ? "default" : "secondary"}>
-                            {project.status}
-                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            data-testid="button-view-all-projects"
+                            onClick={() => setCurrentPage(1)}
+                          >
+                            View All Projects
+                          </Button>
                         </div>
-                      ))
+                      </>
                     )}
                   </div>
                 )}
@@ -285,6 +310,7 @@ export default function Regulator() {
                         <th className="text-left py-3 font-medium">Producer</th>
                         <th className="text-left py-3 font-medium">Amount</th>
                         <th className="text-left py-3 font-medium">Status</th>
+                        <th className="text-left py-3 font-medium">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -310,10 +336,16 @@ export default function Regulator() {
                               Verified
                             </Badge>
                           </td>
+                          <td className="py-3">
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" data-testid="button-verify-event">Verify</Button>
+                              <Button size="sm" variant="destructive" data-testid="button-flag-event">Flag</Button>
+                            </div>
+                          </td>
                         </tr>
                       )) || (
                         <tr>
-                          <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                          <td colSpan={6} className="py-8 text-center text-muted-foreground">
                             No recent transactions available
                           </td>
                         </tr>
@@ -375,8 +407,17 @@ export default function Regulator() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {alerts.map((alert, index) => (
-                    <div key={index} className={`border rounded-lg p-3 ${alert.color}`}>
+                  {alertList.map((alert, index) => (
+                    <div key={index} className={`border rounded-lg p-3 ${alert.color} relative`}>
+                      <button
+                        className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                        aria-label="Dismiss alert"
+                        data-testid={`button-dismiss-alert-${index}`}
+                        onClick={() => setAlertList((prev) => prev.filter((_, i) => i !== index))}
+                        type="button"
+                      >
+                        <span aria-hidden="true">×</span>
+                      </button>
                       <div className="flex items-start gap-2">
                         <alert.icon className="h-4 w-4 mt-1" />
                         <div>
@@ -401,22 +442,53 @@ export default function Regulator() {
                     <div key={index} className="border border-border rounded-lg p-3">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium">{doc.name}</span>
-                        {doc.verified && (
-                          <span className="text-secondary text-xs">
-                            <Shield className="h-3 w-3" />
-                          </span>
-                        )}
+                        <div className="flex gap-2 items-center">
+                          {doc.verified && (
+                            <span className="text-secondary text-xs">
+                              <Shield className="h-3 w-3" />
+                            </span>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            data-testid={`button-download-document-${index}`}
+                            onClick={() => {
+                              // Simulate download (replace with real logic as needed)
+                              const link = document.createElement('a');
+                              link.href = `/api/documents/download/${doc.name}`;
+                              link.download = doc.name;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Download
+                          </Button>
+                        </div>
                       </div>
                       <div className="text-xs text-muted-foreground font-mono">
                         Hash: {doc.hash}
                       </div>
                     </div>
                   ))}
-                  
+                  <input
+                    type="file"
+                    id="upload-doc-input"
+                    className="hidden"
+                    onChange={(e) => {
+                      // Placeholder for upload logic
+                      if (e.target.files && e.target.files.length > 0) {
+                        // handle file upload here
+                        alert(`Selected file: ${e.target.files[0].name}`);
+                      }
+                    }}
+                  />
                   <Button
                     variant="outline"
                     className="w-full border-dashed hover:border-primary/50 hover:text-primary"
                     data-testid="button-upload-document"
+                    onClick={() => document.getElementById('upload-doc-input')?.click()}
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Document for Verification

@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useNavigate } from "react-router-dom";
+
 import { 
   User, 
   Wallet, 
@@ -29,6 +31,8 @@ import type { User as UserType, HydrogenCredit, Transaction } from "@/types";
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
+
   const [notifications, setNotifications] = useState({
     email: true,
     browser: false,
@@ -418,6 +422,7 @@ export default function Profile() {
                           <th className="text-left py-3 font-medium">Amount</th>
                           <th className="text-left py-3 font-medium">Status</th>
                           <th className="text-left py-3 font-medium">Value</th>
+                          <th className="text-left py-3 font-medium">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -435,6 +440,13 @@ export default function Profile() {
                                 ? `${(parseFloat(credit.pricePerKg) * credit.amount / 100).toFixed(2)} ETH`
                                 : "Not Listed"
                               }
+                            </td>
+                            <td className="py-3">
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline">List</Button>
+                                <Button size="sm" variant="outline">Edit</Button>
+                                <Button size="sm" variant="destructive">Remove</Button>
+                              </div>
                             </td>
                           </tr>
                         ))}
