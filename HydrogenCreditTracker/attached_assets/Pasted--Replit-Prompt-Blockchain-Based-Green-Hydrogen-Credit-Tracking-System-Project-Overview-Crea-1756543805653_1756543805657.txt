@@ -1,0 +1,310 @@
+# Replit Prompt: Blockchain-Based Green Hydrogen Credit Tracking System
+
+## Project Overview
+Create a complete hackathon-ready web application for tracking green hydrogen credits using blockchain technology. This should be a full-stack MERN application with Solidity smart contracts, featuring a unique hydrogen-themed UI with 3D elements.
+
+## Tech Stack Requirements
+- **Frontend**: React + Tailwind CSS + Three.js/React Three Fiber
+- **Backend**: Node.js + Express + MongoDB
+- **Blockchain**: Solidity smart contracts (ERC-721 + ERC-1155)
+- **Integration**: Ethers.js for blockchain interaction
+- **Authentication**: JWT + Mock DID-based verification
+- **Storage**: Mock IPFS integration for metadata
+
+## Core Features to Implement
+
+### 1. Smart Contracts (Solidity)
+```solidity
+// Create these contract files:
+contracts/
+├── HydrogenCreditNFT.sol    // ERC-721/1155 hybrid for credits
+├── Marketplace.sol          // Trading & retirement functionality  
+└── IdentityRegistry.sol     // DID-based verification registry
+```
+
+**HydrogenCreditNFT.sol Requirements:**
+- Mint hydrogen credits as NFTs with metadata (origin, certification, project details)
+- Support fractionalization (ERC-1155 compatibility)
+- Role-based access control (producers, regulators, traders)
+- Credit retirement functionality
+- Lifecycle tracking (issued → traded → retired)
+
+**Marketplace.sol Requirements:**
+- Verified user trading only
+- Prevent double-counting mechanisms  
+- Fractionalization support
+- Trade history tracking
+- Escrow functionality for secure transactions
+
+**IdentityRegistry.sol Requirements:**
+- DID-based user verification
+- Role management (producer, buyer, regulator, investor)
+- Verification status tracking
+- Access control for marketplace participation
+
+### 2. Backend API (Node.js + Express + MongoDB)
+
+**Database Schema:**
+```javascript
+// User Schema
+{
+  walletAddress: String,
+  did: String,
+  role: ['producer', 'buyer', 'regulator', 'investor'],
+  verificationStatus: Boolean,
+  profile: {
+    name: String,
+    organization: String,
+    location: String
+  }
+}
+
+// Credit Schema  
+{
+  tokenId: String,
+  contractAddress: String,
+  producer: String,
+  projectLocation: { lat: Number, lng: Number },
+  certificationHash: String,
+  issuanceDate: Date,
+  status: ['active', 'traded', 'retired'],
+  metadata: Object
+}
+
+// Transaction Schema
+{
+  from: String,
+  to: String,
+  tokenId: String,
+  transactionHash: String,
+  timestamp: Date,
+  type: ['mint', 'trade', 'retire']
+}
+```
+
+**Required API Endpoints:**
+```javascript
+// Authentication
+POST /api/auth/login
+POST /api/auth/verify-did
+
+// Credits
+GET /api/credits
+GET /api/credits/:tokenId
+POST /api/credits/mint
+PUT /api/credits/:tokenId/retire
+
+// Marketplace
+GET /api/marketplace/listings
+POST /api/marketplace/list
+POST /api/marketplace/trade
+
+// Regulator APIs
+GET /api/regulator/compliance
+GET /api/regulator/projects
+GET /api/regulator/credit-flows
+```
+
+### 3. Frontend (React + Tailwind + Three.js)
+
+**Design System:**
+- **Primary Colors**: 
+  - Hydrogen Blue: `#00BFFF`
+  - Eco Green: `#32CD32` 
+  - Dark Background: `#0D1117`
+- **Typography**: Modern, clean fonts (Inter or similar)
+- **Animations**: Smooth transitions, hover effects, loading states
+
+**Required Pages & Components:**
+
+#### Landing Page (`/`)
+- **Hero Section**: 
+  - 3D rotating H₂ molecule (React Three Fiber)
+  - Glowing effects and particle animations
+  - Title: "Green Hydrogen Credit Tracking"
+  - Subtitle: "Traceable, Transparent, Fraud-Proof Hydrogen Economy"
+  - CTA Buttons: "Explore Credits", "Marketplace", "Regulator Login"
+- **Features Section**: Key benefits with animated icons
+- **Stats Section**: Live counters (total credits, active projects, etc.)
+
+#### Hydrogen Digital Passport Explorer (`/explorer`)
+- **Search Interface**: 
+  - Search bar for token IDs or project names
+  - Advanced filters (location, date, status, producer)
+- **Credit Details View**:
+  - Etherscan-style transaction history
+  - Lifecycle visualization
+  - Certification document links
+  - Project location on map
+- **Explorer Grid**: Card-based credit listings
+
+#### Marketplace (`/marketplace`)
+- **Trading Interface**:
+  - NFT card grid with credit details
+  - Filter/sort functionality
+  - Trade modal with price input
+  - Fractionalization options
+- **User Portfolio**: Owned credits dashboard
+- **Transaction History**: Recent trades and activities
+
+#### Regulator Dashboard (`/regulator`)
+- **Live Map**: Interactive project locations (Leaflet/Mapbox)
+- **Compliance Table**: Real-time credit status
+- **Analytics Charts**: Credit flows, retirement rates
+- **Document Verification**: Encrypted cert previews
+- **Export Tools**: Compliance reports generation
+
+#### Profile & Authentication (`/profile`)
+- **DID Login Interface**: Mock wallet connection
+- **Identity Verification**: Status and requirements
+- **User Dashboard**: Role-specific features
+- **Settings**: Notifications, preferences
+
+### 4. 3D Components & Animations
+
+**H₂ Molecule Component (Three.js):**
+```javascript
+// Create animated 3D hydrogen molecule
+// - Two hydrogen atoms connected
+// - Glowing materials and particle effects
+// - Smooth rotation animation
+// - Responsive to mouse interaction
+// - Color transitions based on scroll
+```
+
+**Additional 3D Elements:**
+- Floating credit cards with 3D transforms
+- Particle background effects
+- Animated data visualizations
+- Interactive map markers
+
+### 5. Mock Data & Demo Setup
+
+**Sample Data to Include:**
+```javascript
+// Sample Producers
+producers: [
+  {
+    name: "GreenH2 Industries",
+    location: "California, USA",
+    capacity: "50 MW",
+    certification: "Green-e Certified"
+  },
+  {
+    name: "Nordic Hydrogen",
+    location: "Oslo, Norway", 
+    capacity: "75 MW",
+    certification: "CertifHy Certified"
+  }
+]
+
+// Sample Credits
+credits: [
+  {
+    tokenId: "H2-001",
+    producer: "GreenH2 Industries",
+    amount: 1000, // kg H2
+    certificationLevel: "Premium Green",
+    issuanceDate: "2024-01-15",
+    status: "active"
+  }
+]
+
+// Sample Transactions
+transactions: [
+  {
+    from: "0x123...producer",
+    to: "0x456...buyer", 
+    tokenId: "H2-001",
+    timestamp: "2024-02-01",
+    type: "trade"
+  }
+]
+```
+
+### 6. Security & Best Practices
+
+**Smart Contract Security:**
+- Reentrancy guards on all state-changing functions
+- Access control modifiers for sensitive operations
+- Proper input validation and error handling
+- Gas optimization for efficient transactions
+
+**Backend Security:**
+- JWT token validation middleware
+- Rate limiting on API endpoints
+- Input sanitization and validation
+- MongoDB injection prevention
+- CORS configuration
+
+**Frontend Security:**
+- Secure wallet integration
+- XSS prevention
+- Sensitive data handling
+- Environment variable management
+
+### 7. Deployment Configuration
+
+**File Structure:**
+```
+hydrogen-credits/
+├── contracts/           # Solidity smart contracts
+├── backend/            # Node.js Express API
+│   ├── models/         # MongoDB schemas
+│   ├── routes/         # API endpoints
+│   ├── middleware/     # Auth & validation
+│   └── utils/          # Helper functions
+├── frontend/           # React application
+│   ├── src/
+│   │   ├── components/ # Reusable components
+│   │   ├── pages/      # Main pages
+│   │   ├── hooks/      # Custom hooks
+│   │   ├── utils/      # Utilities
+│   │   └── assets/     # Images, icons
+│   └── public/         # Static assets
+├── docs/               # API documentation
+└── docker-compose.yml  # Development setup
+```
+
+**Environment Setup:**
+```bash
+# Required environment variables
+MONGODB_URI=mongodb://localhost:27017/hydrogen-credits
+JWT_SECRET=your_jwt_secret_key
+BLOCKCHAIN_RPC_URL=https://polygon-rpc.com
+CONTRACT_ADDRESS=0x...
+PRIVATE_KEY=0x...
+IPFS_GATEWAY=https://ipfs.io/ipfs/
+```
+
+## Special Instructions for Replit
+
+1. **Create a complete, functional demo** - not just templates or placeholders
+2. **Include sample data** for immediate testing and demonstration
+3. **Mock blockchain interactions** where needed for demo purposes
+4. **Ensure mobile responsiveness** across all pages
+5. **Add loading states and error handling** for better UX
+6. **Include comprehensive documentation** in README.md
+7. **Set up proper file structure** for easy navigation and development
+
+## Expected Deliverables
+
+✅ **Complete Smart Contracts** with deployment scripts
+✅ **Full MERN Backend** with all required APIs  
+✅ **React Frontend** with hydrogen theme and 3D elements
+✅ **Working Demo** with sample data and mock transactions
+✅ **Documentation** including setup instructions and API docs
+✅ **Docker Configuration** for easy deployment
+
+## Success Criteria
+
+The application should demonstrate:
+- ✅ Seamless user experience from landing to trading
+- ✅ Beautiful, modern UI with hydrogen theme
+- ✅ Functional blockchain integration (even if mocked)
+- ✅ Regulatory compliance features
+- ✅ Mobile-first responsive design
+- ✅ Smooth 3D animations and interactions
+- ✅ Ready for immediate demo and presentation
+
+**Note**: Focus on creating a visually impressive, functionally complete demo that showcases the potential of blockchain technology for green hydrogen credit tracking. The application should feel production-ready even with mock data.
