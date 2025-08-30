@@ -1,119 +1,117 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, decimal, boolean, jsonb } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
+// Hydrogen Credit Types
+export interface ProjectLocation {
+  name: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  country: string;
+  region: string;
+}
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  walletAddress: text("wallet_address").notNull().unique(),
-  did: text("did"),
-  role: text("role").notNull().default("buyer"), // producer, buyer, regulator, investor
-  verificationStatus: boolean("verification_status").default(false),
-  name: text("name"),
-  organization: text("organization"),
-  location: text("location"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+export interface Certification {
+  standard: string;
+  level: string;
+  issuer: string;
+  validUntil: Date;
+}
 
-export const hydrogenCredits = pgTable("hydrogen_credits", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tokenId: text("token_id").notNull().unique(),
-  contractAddress: text("contract_address").notNull(),
-  producer: text("producer").notNull(),
-  producerWallet: text("producer_wallet").notNull(),
-  currentOwner: text("current_owner").notNull(),
-  projectLocation: jsonb("project_location").$type<{ lat: number; lng: number; name: string }>().notNull(),
-  amount: integer("amount").notNull(), // kg H2
-  certificationHash: text("certification_hash").notNull(),
-  certificationLevel: text("certification_level").notNull(), // Premium, Standard
-  technology: text("technology").notNull(), // PEM Electrolysis, etc.
-  energySource: text("energy_source").notNull(), // Solar, Wind, etc.
-  carbonIntensity: decimal("carbon_intensity", { precision: 5, scale: 2 }).notNull(),
-  issuanceDate: timestamp("issuance_date").notNull(),
-  status: text("status").notNull().default("active"), // active, traded, retired
-  pricePerKg: decimal("price_per_kg", { precision: 10, scale: 6 }), // ETH per kg
-  metadata: jsonb("metadata").$type<Record<string, any>>(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+export interface HydrogenCredit {
+  id: string;
+  tokenId: string;
+  producer: string;
+  projectName: string;
+  projectLocation: ProjectLocation;
+  technology: "PEM Electrolysis" | "Alkaline Electrolysis" | "SOEC" | "Biomass Gasification";
+  amount: number; // kg of H₂
+  status: "active" | "traded" | "retired" | "verified";
+  certificationLevel: string;
+  pricePerKg?: string; // ETH per 100kg
+  currentOwner: string;
+  createdAt: Date;
+  updatedAt: Date;
+  mintingDate: Date;
+  verificationDate?: Date;
+  retirementDate?: Date;
+  metadata: {
+    carbonIntensity: number; // gCO2/kWh
+    energySource: "Wind" | "Solar" | "Hydro" | "Geothermal" | "Nuclear";
+    additionality: boolean;
+    emissionsReduction: number; // tons CO2 equivalent
+  };
+}
 
-export const transactions = pgTable("transactions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  from: text("from").notNull(),
-  to: text("to").notNull(),
-  tokenId: text("token_id").notNull(),
-  transactionHash: text("transaction_hash").notNull(),
-  transactionType: text("transaction_type").notNull(), // mint, trade, retire
-  amount: integer("amount"), // for partial trades
-  price: decimal("price", { precision: 10, scale: 6 }), // ETH
-  timestamp: timestamp("timestamp").defaultNow(),
-});
+export interface Transaction {
+  id: string;
+  from: string;
+  to: string;
+  tokenId: string;
+  transactionHash: string;
+  transactionType: "mint" | "trade" | "verify" | "retire";
+  amount?: number;
+  price?: string;
+  timestamp: Date;
+}
 
-export const projects = pgTable("projects", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  producer: text("producer").notNull(),
-  location: jsonb("location").$type<{ lat: number; lng: number; name: string }>().notNull(),
-  capacity: text("capacity").notNull(), // MW
-  technology: text("technology").notNull(),
-  energySource: text("energy_source").notNull(),
-  certification: text("certification").notNull(),
-  status: text("status").notNull().default("active"), // active, inactive, pending
-  totalCreditsIssued: integer("total_credits_issued").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+export interface User {
+  id: string;
+  walletAddress: string;
+  did: string;
+  role: "producer" | "trader" | "regulator" | "investor";
+  verificationStatus: boolean;
+  name: string;
+  email: string;
+  organization: string;
+  location: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  walletAddress: true,
-  did: true,
-  role: true,
-  name: true,
-  organization: true,
-  location: true,
-});
+export interface ComplianceStats {
+  activeProjects: number;
+  activeCredits: number;
+  retiredCredits: number;
+  totalVolume: number;
+  recentTransactions: Transaction[];
+}
 
-export const insertCreditSchema = createInsertSchema(hydrogenCredits).pick({
-  tokenId: true,
-  contractAddress: true,
-  producer: true,
-  producerWallet: true,
-  currentOwner: true,
-  projectLocation: true,
-  amount: true,
-  certificationHash: true,
-  certificationLevel: true,
-  technology: true,
-  energySource: true,
-  carbonIntensity: true,
-  issuanceDate: true,
-  pricePerKg: true,
-  metadata: true,
-});
+export interface Project {
+  id: string;
+  name: string;
+  location: ProjectLocation;
+  technology: string;
+  capacity: number;
+  status: "active" | "pending" | "inactive";
+  owner: string;
+  certification: Certification;
+}
 
-export const insertTransactionSchema = createInsertSchema(transactions).pick({
-  from: true,
-  to: true,
-  tokenId: true,
-  transactionHash: true,
-  transactionType: true,
-  amount: true,
-  price: true,
-});
+// API Request/Response Types
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
 
-export const insertProjectSchema = createInsertSchema(projects).pick({
-  name: true,
-  producer: true,
-  location: true,
-  capacity: true,
-  technology: true,
-  energySource: true,
-  certification: true,
-});
+export interface RegisterRequest extends LoginRequest {
+  name: string;
+  organization?: string;
+  role: User["role"];
+}
 
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type HydrogenCredit = typeof hydrogenCredits.$inferSelect;
-export type InsertHydrogenCredit = z.infer<typeof insertCreditSchema>;
-export type Transaction = typeof transactions.$inferSelect;
-export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
-export type Project = typeof projects.$inferSelect;
-export type InsertProject = z.infer<typeof insertProjectSchema>;
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
+// MongoDB Document Interfaces
+export interface UserDocument extends User, Document {}
+export interface CreditDocument extends HydrogenCredit, Document {}
+export interface TransactionDocument extends Transaction, Document {}
+export interface ProjectDocument extends Project, Document {}
