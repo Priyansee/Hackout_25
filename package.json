@@ -5,10 +5,16 @@
   "description": "Backend for Hydrogen Credit Tracker application",
   "main": "index.ts",
   "scripts": {
-    "dev": "npm run build --prefix client && tsc --project server",
-    "build": "tsc",
-    "start": "ts-node client/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "devs": "npm run build --prefix client && tsc --project server",
+    "dev": "cross-env NODE_ENV=development tsx server/index.ts",
+    "builds": "tsc",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "starts": "ts-node client/index.ts",
+    "tests": "echo \"Error: no test specified\" && exit 1",
+    "start": "NODE_ENV=production node dist/index.js",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
+
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
