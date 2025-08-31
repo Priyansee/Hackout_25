@@ -5,9 +5,9 @@
   "description": "Backend for Hydrogen Credit Tracker application",
   "main": "index.ts",
   "scripts": {
-    "dev": "ts-node server/index.ts --port 3000",
+    "dev": "npm run build --prefix client && tsc --project server",
     "build": "tsc",
-    "start": "node client/index.js",
+    "start": "ts-node client/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -111,6 +111,7 @@
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "tsx": "^4.19.1",
     "typescript": "^5.9.2",
     "vite": "^5.4.19"

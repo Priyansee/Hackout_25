@@ -21,6 +21,23 @@ import {
 } from "lucide-react";
 import type { ComplianceStats, Transaction, Project } from "@/types";
 
+function RegulatorDashboard() {
+  // Define alerts that was missing
+  const alerts = [
+    {
+      title: "High Volume Transaction",
+      description: "Transaction exceeds daily limit",
+      color: "border-destructive/20 bg-destructive/5",
+      icon: AlertTriangle
+    },
+    {
+      title: "Pending Verification", 
+      description: "2 documents require review",
+      color: "border-yellow-500/20 bg-yellow-500/5",
+      icon: Clock
+    }
+  ];
+
   const [mapView, setMapView] = useState<"map" | "list">("map");
   const [alertList, setAlertList] = useState(alerts);
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,8 +68,6 @@ import type { ComplianceStats, Transaction, Project } from "@/types";
         return "bg-muted text-muted-foreground";
     }
   };
-
-  // alerts moved to state as alertList
 
   const documents = [
     {
@@ -502,3 +517,5 @@ import type { ComplianceStats, Transaction, Project } from "@/types";
     </div>
   );
 }
+
+export default RegulatorDashboard;

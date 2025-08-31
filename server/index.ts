@@ -3,74 +3,84 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { connectToDatabase } from './storage';
-import routes from './routes';
-import { errorHandler } from './middleware/errorHandler';
+import router from './routes';
+import path from 'path';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors({
-  origin: ['http://localhost:5000', 'http://localhost:3000'], // Your frontend URLs
-  credentials: true
-}));
+// Connect to MongoDB
+// connectDB();
+
+// Middleware to parse JSON requests
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Test route
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Hydrogen Credit Tracker API is working!',
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
-});
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    timestamp: new Date().toISOString() 
-  });
-});
 
 // API routes
-app.use('/api', routes);
+app.use('/api', router); // Use a prefix to distinguish API routes from frontend routes
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+// Serve static files from the 'client/dist' directory
+// This is the key step to serve your frontend
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// A catch-all route to serve the frontend's index.html
+// This is essential for client-side routing (e.g., React Router)
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../client/dist', 'index.html'));
 });
 
-// Error handling
-app.use((error: any, req: any, res: any, next: any) => {
-  console.error('Server error:', error);
-  res.status(500).json({ error: 'Internal server error' });
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
 
 
-// Start server
-async function startServer() {
-  try {
-    await connectToDatabase();
-    console.log('✅ Connected to MongoDB successfully');
+// //
+// const app = express();
+// const PORT = 5000;
 
-    // Start Express server
-    app.listen(PORT, () => {
-      console.log(`✅ Server running on port ${PORT}`);
-      console.log(`✅ Health check: http://localhost:${PORT}/health`);
-      console.log(`✅ Test endpoint: http://localhost:${PORT}/`);
-    });
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
-  }
-}
+// // Middleware
+// app.use(cors());
+// app.use(express.json());
 
-startServer();
+// // Serve static files from React build
+// app.use(express.static(path.join(__dirname, '../../client/dist')));
 
-export default app;
+// // API routes
+// app.use('/api/auth', require('./routes/auth'));
+// app.use('/api/credits', require('./routes/credits'));
+// app.use('/api/marketplace', require('./routes/marketplace'));
+// // ... other API routes
+
+// // Catch all handler - send React app for any non-API route
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+// });
+
+// app.listen(PORT, () => {
+//   console.log(`Server running on http://localhost:${PORT}`);
+// });
+// //
+
+// // Start server
+// async function startServer() {
+//   try {
+//     console.log('🔄 Connecting to MongoDB...');
+//     await connectToDatabase();
+//     console.log('✅ MongoDB connected successfully');
+
+//     app.listen(PORT, () => {
+//       console.log(`✅ Server running on port ${PORT}`);
+//       console.log(`📍 Local: http://localhost:${PORT}`);
+//       console.log(`📍 Health: http://localhost:${PORT}/health`);
+//     });
+//   } catch (error) {
+//     console.error('❌ Failed to start server:', error);
+//     process.exit(1);
+//   }
+// }
+
+// startServer();
+
+// export default app;
